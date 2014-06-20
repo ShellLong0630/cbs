@@ -1,0 +1,206 @@
+﻿<%- include header%>
+<%- include calendar_user%>
+if (month!=0){var parseDate = d3.time.format("%Y-%m-%d").parse;}else{var parseDate = d3.time.format("%Y-%m").parse;};
+var max,min;
+var date = [<%- key%>];
+//console.log(<%- value%>)
+var close=[<%= value%>];
+var data = Array.apply(0,Array(<%= day%>)).map(function(item,i){	
+	return {date:date[i],close:close[i]};
+	i++;
+});	
+data.forEach(function(data) {
+    data.date = parseDate(data.date);
+	//console.log(d3.time.format("%m")(data.date));
+    //data.close = +data.close;
+  });
+
+//data1
+var date1 = [<%- key1%>];
+var close1=[<%= value1%>];
+var data1 = Array.apply(0,Array(<%= day%>)).map(function(item,i){	
+	return {date:date1[i],close:close1[i]};
+	i++;
+});	
+data1.forEach(function(data1) {
+    data1.date = parseDate(data1.date);
+    //data1.close = +data1.close;
+  });
+  
+//data2
+//var date2 = [<%- key%>];
+//var close2=[<%= value%>];
+var data2 = Array.apply(0,Array(<%= day%>)).map(function(item,i){	
+	return {date:date[i],close:(close[i]+close1[i])};
+	i++;
+});	
+data2.forEach(function(data2) {
+    data2.date = parseDate(data2.date);
+    //data2.close = +data2.close;
+  });
+  
+max = d3.max(data, function (d) { return d.close; })
+min = d3.min(data1, function (d) { return d.close; })
+
+var linefunction = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); })
+	.interpolate('monotone');
+	
+var margin = {top: 20, right: 120, bottom: 130, left: 120},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+//console.log(data);
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+  x.domain(d3.extent(data,  function(d) { return d.date; }));
+  y.domain([min*1.05,max*1.05]);
+
+<%- include tips_flow%>	
+
+  svg.append("g")
+      .attr({
+		  fill: "none",
+		  stroke: color_axis,
+		  "shape-rendering": "crispEdges",
+		  "font-size":"12px"
+	  })
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr({
+		  fill: "none",
+		  stroke: color_axis,
+		  "shape-rendering": "crispEdges",
+		  "font-size":"12px"
+	  })
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+	  .attr("font-size","12px")
+      .text("Num");
+	//legend
+	svg.append('g')
+        .append('circle')
+        .attr('fill', color2)
+        .attr('cx', 750)
+        .attr('cy', 50)
+        .attr('r', 8)
+	svg.append("text")
+      .attr("y", 57.5)
+	  .attr("x", 775)
+	  .attr("fill",color2)
+	  .attr("font-size","20px")
+      .text("Total");
+	svg.append('g')
+        .append('circle')
+        .attr('fill', color1)
+        .attr('cx', 750)
+        .attr('cy', 100)
+        .attr('r', 8)
+	svg.append("text")
+      .attr("y", 107.5)
+	  .attr("x", 775)
+	  .attr("font-size","20px")
+	  .attr('fill', color1)
+      .text("<%= tip1%>");
+	svg.append('g')
+        .append('circle')
+        .attr('fill', color)
+        .attr('cx', 750)
+        .attr('cy', 150)
+        .attr('r', 8)
+	svg.append("text")
+      .attr("y", 157.5)
+	  .attr("x", 775)
+	  .attr('fill', color)
+	  .attr("font-size","20px")
+      .text("<%= tip%>");
+	
+	//进出流水总比例
+	var <%= tip%>_text;
+	if (d3.sum(close,function(d,i){return close[i]-close1[i];})>0){
+			<%= tip%>_text = (d3.sum(close,function(d,i){return close[i];})/d3.sum(close,function(d,i){return close[i]-close1[i];})*100).toFixed(2);
+		 }else{
+			<%= tip%>_text = 50;
+		};
+	var <%= tip1%>_text;
+	if (d3.sum(close,function(d,i){return close[i]-close1[i];})>0){
+			<%= tip1%>_text = (d3.sum(close1,function(d,i){return 0-close1[i];})/d3.sum(close,function(d,i){return close[i]-close1[i];})*100).toFixed(2);
+		 }else{
+			<%= tip1%>_text = 50;
+		};
+
+	//比例图的位置参数
+	var w = 240;
+	var h = 5;
+	var h_f = <%= tip%>_text*1.5;
+	var h_b = <%= tip1%>_text*1.5;
+	var ori_x = 760;
+	var ori_y = 300;
+	var r_0 = 15;
+	var r_1 = 6;
+	
+	svg.append('g')
+        .append('circle')
+        .attr('fill', "rgb(53,126,186)")
+        .attr('cx', ori_x+0.5*w)
+        .attr('cy', ori_y+h+r_0)
+        .attr('r', r_0)
+	svg.append('g')
+        .append('circle')
+		.attr('fill', "rgb(28,91,166)")
+        .attr('cx', ori_x+0.5*w)
+        .attr('cy', ori_y+h+r_0)
+        .attr('r', r_1)
+	svg.append("rect")
+	    .attr("transform", "rotate("+(0.4*(50-<%= tip1%>_text))+" "+(ori_x+w/2)+","+ (ori_y+h)+")")
+		.attr("y",ori_y)
+		.attr("x",ori_x)
+		.attr('fill', "rgb(53,126,186)")
+		.attr("height", h)	
+		.attr("width", w)	;
+	
+	//添加图片
+	var img_in = svg.append("image")
+							.attr("xlink:href","/images/in.png")
+							.attr("y", ori_y-h_f*0.9+(<%= tip%>_text-50)*0.6)
+							.attr("x", ori_x+w*5/6-h_f/2)
+							.attr("width",h_f)
+							.attr("height",h_f);
+	var img_out = svg.append("image")
+							.attr("xlink:href","/images/out.png")
+							.attr("y", ori_y-h_b*0.9+(<%= tip1%>_text-50)*0.6)
+							.attr("x", ori_x+w/6-h_b/2)
+							.attr("width",h_b)
+							.attr("height",h_b);
+	//添加比例数字说明
+	svg.append("text")
+      .attr("y", ori_y-h_f+(<%= tip%>_text-50)*0.6)
+	  .attr("x", ori_x+w*5/6-w/16)
+	  .attr("fill",color)
+	  .attr("font-size","25px")
+      .text(<%= tip%>_text+"%");
+	 svg.append("text")     
+	  .attr("y", ori_y-h_b+(<%= tip1%>_text-50)*0.6)
+	  .attr("x", ori_x+w/6-w/16)
+	  .attr("fill",color1)
+	  .attr("font-size","25px")
+      .text(<%= tip1%>_text+"%");
+</script>

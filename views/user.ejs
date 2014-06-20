@@ -1,0 +1,85 @@
+﻿<%- include header%>
+<%- include calendar_user%>
+if (month!=0){var parseDate = d3.time.format("%Y-%m-%d").parse;}else{var parseDate = d3.time.format("%Y-%m").parse;};
+var max;
+var date = [<%- key%>];
+//console.log(<%- value%>)
+var close=[<%= value%>];
+var data = Array.apply(0,Array(<%= day%>)).map(function(item,i){	
+	return {date:date[i],close:close[i]};
+	i++;
+});	
+data.forEach(function(data) {
+    data.date = parseDate(data.date);
+	//console.log(d3.time.format("%m")(data.date));
+    //data.close = +data.close;
+  });
+
+var linefunction = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.close); })
+	.interpolate('monotone');
+	
+var margin = {top: 20, right: 120, bottom: 130, left: 120},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+//console.log(data);
+max = d3.max(data, function (d) { return d.close; })
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+  x.domain(d3.extent(data,  function(d) { return d.date; }));
+  y.domain([0,max]);
+
+<%- include tips_user%>	
+
+  svg.append("g")
+      .attr({
+		  fill: "none",
+		  stroke: color_axis,
+		  "shape-rendering": "crispEdges",
+		  "font-size":"12px"
+	  })
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr({
+		  fill: "none",
+		  stroke: color_axis,
+		  "shape-rendering": "crispEdges",
+		  "font-size":"12px"
+	  })
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+	  .attr("font-size","12px")
+      .text("Num");
+	//legend
+	svg.append('g')
+        .append('circle')
+        .attr('fill', color)
+        .attr('cx', 750)
+        .attr('cy', 150)
+        .attr('r', 8)
+	svg.append("text")
+      .attr("y", 157.5)
+	  .attr("x", 775)
+	  .attr('fill', color)
+	  .attr("font-size","20px")
+      .text("<%= tip%>");
+</script>
